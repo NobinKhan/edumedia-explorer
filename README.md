@@ -38,9 +38,6 @@ Then open the URL printed by the server.
 - `just check`: format-check + lint + tests
 - `just clean`: remove caches
 
-## Spec
-See `PROJECT_SPEC.md`.
-
 ## Deployment
 This project is set up to run on common FastAPI hosts (Render/Railway/Fly.io). Use:
 - start command: `just run`
