@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: edumedia-explorer
-    env: python
-    plan: free
-    buildCommand: "curl -LsSf https://astral.sh/uv/install.sh | sh && ~/.local/bin/uv sync"
-    startCommand: "~/.local/bin/uv run fastapi run app/main.py"
-    healthCheckPath: "/healthz"
