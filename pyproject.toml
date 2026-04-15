@@ -1,0 +1,29 @@
+[project]
+name = "edumedia-explorer"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14.4"
+dependencies = [
+    "fastapi[standard]==0.135.3",
+    "jinja2>=3.1.6",
+    "pydantic-settings>=2.13.1",
+    "uvicorn==0.44.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest==9.0.3",
+    "ruff==0.15.10",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.format]
+quote-style = "double"

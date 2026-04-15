@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Interactive Teaching Platform</h1>
+      <p class="page-subtitle">Click on highlighted terms to explore multimedia content</p>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="col col--left">
+      {% include "partials/media_cards.html" %}
+      {% include "partials/article.html" %}
+    </div>
+    <aside class="col col--right" aria-label="Expandable content">
+      {% include "partials/accordion.html" %}
+    </aside>
+  </div>
+
+  {% include "partials/modal.html" %}
+{% endblock %}

@@ -1,0 +1,88 @@
+<section class="card">
+  <h2 class="card__title">Expandable Content</h2>
+
+  <div class="accordion" data-accordion>
+    <div class="accordion__item">
+      <h3 class="accordion__heading">
+        <button
+          class="accordion__trigger"
+          type="button"
+          aria-expanded="true"
+          aria-controls="acc-panel-intro"
+          id="acc-trigger-intro"
+          data-accordion-trigger
+        >
+          Introduction
+        </button>
+      </h3>
+      <div
+        class="accordion__panel"
+        id="acc-panel-intro"
+        role="region"
+        aria-labelledby="acc-trigger-intro"
+        data-accordion-panel
+      >
+        <p>
+          This panel introduces the idea: content can be explored without leaving the page.
+          Try opening the <button class="term term--inline" type="button" data-action="open-content" data-content-id="interactive-learning">text example</button>.
+        </p>
+      </div>
+    </div>
+
+    <div class="accordion__item">
+      <h3 class="accordion__heading">
+        <button
+          class="accordion__trigger"
+          type="button"
+          aria-expanded="false"
+          aria-controls="acc-panel-detail"
+          id="acc-trigger-detail"
+          data-accordion-trigger
+        >
+          Detailed Explanation
+        </button>
+      </h3>
+      <div
+        class="accordion__panel"
+        id="acc-panel-detail"
+        role="region"
+        aria-labelledby="acc-trigger-detail"
+        data-accordion-panel
+        hidden
+      >
+        <p>
+          The right column can hold structured notes, definitions, and supporting media.
+          Use consistent content IDs so triggers in cards, article, and accordion all map to the same registry.
+        </p>
+      </div>
+    </div>
+
+    <div class="accordion__item">
+      <h3 class="accordion__heading">
+        <button
+          class="accordion__trigger"
+          type="button"
+          aria-expanded="false"
+          aria-controls="acc-panel-more"
+          id="acc-trigger-more"
+          data-accordion-trigger
+        >
+          Additional Resources
+        </button>
+      </h3>
+      <div
+        class="accordion__panel"
+        id="acc-panel-more"
+        role="region"
+        aria-labelledby="acc-trigger-more"
+        data-accordion-panel
+        hidden
+      >
+        <p>
+          Want to explore more? Open the
+          <button class="term term--inline" type="button" data-action="open-content" data-content-id="external-reference">YouTube reference</button>.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
