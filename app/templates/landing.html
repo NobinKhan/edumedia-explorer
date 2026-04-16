@@ -25,9 +25,11 @@
         <a class="landing__btn landing__btn--primary" href="/editor">Open editor</a>
         <a class="landing__btn landing__btn--ghost" href="/pages/photosynthesis">View demo page</a>
       </div>
+      {% if show_dev_setup_hint %}
       <p class="landing__hint">
         First time here? Run <kbd class="landing__kbd">just seed</kbd> locally, then open the demo link.
       </p>
+      {% endif %}
     </section>
 
     <section class="landing__features" aria-labelledby="features-heading">

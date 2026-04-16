@@ -1,5 +1,9 @@
 set shell := ["bash", "-cu"]
 
+dev-setup:
+    @if [ ! -f .env ]; then cp .env.example .env && echo "Created .env from .env.example"; else echo ".env already exists; skipping copy"; fi
+    docker compose up -d db
+
 install:
     uv sync
 

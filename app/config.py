@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    environment: str = "development"
+    environment: str = "production"
     database_url: str | None = None
     sqlalchemy_echo: bool = False
     media_upload_dir: str | None = None

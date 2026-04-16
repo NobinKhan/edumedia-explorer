@@ -18,6 +18,14 @@ FastAPI service for authoring **hierarchical subject detail pages** (category �
 
 ### Local (uv + just)
 
+First-time setup (creates `.env` from [`.env.example`](.env.example) if missing and starts the Compose **Postgres** service only):
+
+```bash
+just dev-setup
+```
+
+For local development, set `ENVIRONMENT=development` in `.env` (see [Configuration](#configuration)); the default when unset is production-like behavior.
+
 ```bash
 just install
 just seed
@@ -75,7 +83,7 @@ That combination—Wolfi base, frozen uv lock, split stages, non-root user—is 
 
 ## Configuration
 
-See [`.env.example`](.env.example). Optional: `DATABASE_URL`, `MEDIA_UPLOAD_DIR`, `SQLALCHEMY_ECHO`.
+See [`.env.example`](.env.example). **`ENVIRONMENT`**: omit it for production-like defaults (`production`). Set **`ENVIRONMENT=development`** in `.env` for local work (for example the landing page dev hint). Optional: `DATABASE_URL`, `MEDIA_UPLOAD_DIR`, `SQLALCHEMY_ECHO`.
 
 For **PostgreSQL**, set a SQLAlchemy URL with the psycopg v3 driver, for example:
 
@@ -91,6 +99,7 @@ If `SQLITE_AUTO_RESET_SECONDS` is set to a positive value **and** you use SQLite
 
 | Command | Purpose |
 |---------|---------|
+| `just dev-setup` | Create `.env` from `.env.example` if missing; start Compose Postgres (`db`) |
 | `just install` | `uv sync` dependencies |
 | `just seed` | Seed sample hierarchy + one published page |
 | `just dev` | Dev server with reload |
