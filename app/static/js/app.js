@@ -16,6 +16,24 @@ function createEl(tag, attrs = {}, children = []) {
   return el;
 }
 
+function toast(kind, title, message, { timeoutMs = 2400 } = {}) {
+  const root = document.getElementById("toast-root");
+  if (!root) return;
+  const t = createEl("div", { class: `toast toast--${kind}` }, [
+    createEl("div", { class: "toast__title", text: title || "" }),
+    createEl("div", { class: "toast__msg", text: message || "" }),
+  ]);
+  root.appendChild(t);
+  // Trigger transition on next frame.
+  requestAnimationFrame(() => t.classList.add("toast--show"));
+  window.setTimeout(() => {
+    t.classList.remove("toast--show");
+    window.setTimeout(() => t.remove(), 220);
+  }, timeoutMs);
+}
+
+window.toast = toast;
+
 function initAccordion() {
   const root = document.querySelector("[data-accordion]");
   if (!root) return;

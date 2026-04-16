@@ -523,6 +523,7 @@ async function initEditorPage() {
       };
       const updated = await apiJson("PATCH", `/api/v1/subject-pages/${pageId}`, payload);
       currentPage = updated;
+      if (window.toast) window.toast("success", "Saved", "Your changes were saved.");
       return updated;
     }
     const created = await apiJson("POST", "/api/v1/subject-pages/", gatherPagePayload());
@@ -530,7 +531,12 @@ async function initEditorPage() {
     return created;
   }
 
-  $("btn-save").addEventListener("click", () => saveDraft().catch((e) => setAnnStatus("error", e.message)));
+  $("btn-save").addEventListener("click", () => {
+    saveDraft().catch((e) => {
+      setAnnStatus("error", e.message);
+      if (window.toast) window.toast("error", "Save failed", e.message || "Unable to save.");
+    });
+  });
 
   async function saveDraftInPlace() {
     setAnnStatus("info", "");
@@ -538,6 +544,7 @@ async function initEditorPage() {
     const pageIdEl = $("page_id");
     if (pageIdEl) pageIdEl.value = String(created.id);
     setAnnStatus("success", "Draft saved.");
+    if (window.toast) window.toast("success", "Draft saved", "You can now publish or add annotations.");
     // Sync editor DOM to server-stored HTML to keep offset mapping consistent with backend.
     if (created && typeof created.raw_content === "string") {
       editorRoot.innerHTML = created.raw_content || "<p></p>";
@@ -578,6 +585,7 @@ async function initEditorPage() {
         await saveDraftInPlace();
       } catch (e) {
         setAnnStatus("error", e && e.message ? e.message : String(e));
+        if (window.toast) window.toast("error", "Save failed", e && e.message ? e.message : String(e));
       } finally {
         setButtonLoading(annSaveDraftBtn, false);
       }
@@ -593,14 +601,21 @@ async function initEditorPage() {
     publishBtn.addEventListener("click", async () => {
       const pid = getPageId();
       if (!pid) return;
-      const r = await apiJson("POST", `/api/v1/subject-pages/${pid}/publish`, {});
-      currentPage = r;
-      const viewBtn = $("btn-view");
-      if (viewBtn) {
-        viewBtn.hidden = false;
-        viewBtn.href = `/pages/${r.slug}`;
+      try {
+        const r = await apiJson("POST", `/api/v1/subject-pages/${pid}/publish`, {});
+        currentPage = r;
+        const viewBtn = $("btn-view");
+        if (viewBtn) {
+          viewBtn.hidden = false;
+          viewBtn.href = `/pages/${r.slug}`;
+        }
+        setPreviewHtml(r.rendered_content);
+        if (window.toast) window.toast("success", "Published", "Your page is now public.");
+      } catch (e) {
+        const msg = e && e.message ? e.message : String(e);
+        setAnnStatus("error", msg);
+        if (window.toast) window.toast("error", "Publish failed", msg);
       }
-      setPreviewHtml(r.rendered_content);
     });
   }
 

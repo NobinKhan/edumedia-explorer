@@ -173,6 +173,36 @@ p { margin: 0; color: var(--muted); }
   padding: 12px;
   background: rgba(255, 255, 255, 0.02);
 }
+.toast-root {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 100;
+  display: grid;
+  gap: 10px;
+  width: min(420px, calc(100% - 32px));
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(17, 27, 46, 0.92);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  color: var(--text);
+  display: grid;
+  gap: 2px;
+  transform: translateY(6px);
+  opacity: 0;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+.toast.toast--show { transform: translateY(0); opacity: 1; }
+.toast__title { font-weight: 900; }
+.toast__msg { color: rgba(233, 238, 252, 0.78); font-size: 14px; }
+.toast--success { border-color: rgba(96, 214, 181, 0.35); }
+.toast--error { border-color: rgba(255, 160, 160, 0.35); }
+.toast--info { border-color: rgba(121, 167, 255, 0.35); }
 .split {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
