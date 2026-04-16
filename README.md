@@ -39,9 +39,13 @@ Open the URL printed by the dev server. API docs: `/docs`. Landing: `/`.
 
 Requires [Docker Compose](https://docs.docker.com/compose/) v2.
 
+To bring the stack up manually:
+
 ```bash
 docker compose up --build
 ```
+
+To run **Ruff format, format check, lint, Pytest**, then **`docker compose build`** and start the stack in the background, use **`just test`** (needs Docker; first image build can take several minutes). For the same Python checks **without** Docker, use **`just check`** (see [Commands](#commands) and [Tests](#tests)).
 
 - **Database**: [`cgr.dev/chainguard/postgres:latest`](https://images.chainguard.dev/directory/image/postgres/overview) with a named volume for data (optional `ports` mapping is commented in the compose file if you need host access).
 - **App**: builds the [`Dockerfile`](Dockerfile); connects with `postgresql+psycopg://edumedia:edumedia@db:5432/edumedia`.
@@ -58,12 +62,16 @@ Use `WEB_PORT=8000 docker compose up --build` if you want the app on `8000` inst
 
 Stop and remove containers: `docker compose down`. To wipe the Postgres volume as well: `docker compose down -v`.
 
+### Resetting env files and the Compose stack
+
+**`just rm`** is a destructive local reset: it deletes `.env` and any other root-level `.env.*` files **except** [`.env.example`](.env.example), then runs `docker compose down -v --remove-orphans --rmi local` (stops the project, removes volumes and project networks, and removes **locally built** images for this Compose project). Use it when you want a clean slate before `just dev-setup` or a fresh `docker compose up --build`. It does not remove arbitrary Docker images from other projects.
+
 ## Useful routes
 
 | Route | Purpose |
 |-------|---------|
 | `GET /` | Landing |
-| `GET /healthz` | Liveness JSON |
+| `GET /healthz` | App status plus `database` kind and `database_status` (`connected` or error); HTTP **503** if the DB check fails |
 | `GET /api/v1/meta` | API meta |
 | `GET /docs` | OpenAPI UI |
 | `GET /editor` | Editor dashboard |
@@ -119,13 +127,23 @@ If `SQLITE_AUTO_RESET_SECONDS` is set to a positive value **and** you use SQLite
 
 ## Tests
 
+**Full pipeline (Python + Docker):**
+
 ```bash
 just test
 ```
 
-`just test` runs Ruff format, Ruff format `--check`, Ruff lint, Pytest, then builds and starts the full Compose stack in the background (`docker compose up -d`). For checks without Docker, use `just check`.
+Runs, in order: `ruff format`, `ruff format --check`, `ruff check`, `pytest`, then `docker compose build` and `docker compose up -d`. Fail-fast: the first failing step stops the recipe. Ensure Docker is running; the first run may download base images and build the `web` image.
 
-Integration tests use an isolated in-memory SQLite engine via `tests/conftest.py` (dependency override for `get_session`).
+**Python only (CI-friendly, no Docker):**
+
+```bash
+just check
+```
+
+Runs format check, lint, and tests—same checks as the first half of `just test`, without Compose.
+
+Integration tests use an isolated in-memory SQLite engine via `tests/conftest.py` (dependency override for `get_session`). The `/healthz` route still uses the process-wide engine from [`app/db.py`](app/db.py) (your configured `DATABASE_URL` or default SQLite file).
 
 ## API quick examples
 
