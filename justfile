@@ -1,11 +1,11 @@
 set shell := ["bash", "-cu"]
 
 dev-setup:
-    @if [ ! -f .env ]; then cp .env.example .env && echo "Created .env from .env.example"; else echo ".env already exists; skipping copy"; fi
+    -@if [ ! -f .env ]; then cp .env.example .env && echo "Created .env from .env.example"; else echo ".env already exists; skipping copy"; fi
     docker compose up -d db
 
 install:
-    uv sync
+    -@uv sync
 
 dev:
     -@port="${PORT:-8000}"; \
@@ -24,7 +24,17 @@ run:
     uv run fastapi run app/main.py --port "$port"
 
 test:
-    -@uv run pytest
+    uv run ruff format .
+    uv run ruff format --check .
+    uv run ruff check .
+    uv run pytest
+    docker compose build
+    docker compose up -d
+
+rm:
+    rm -f .env
+    find . -maxdepth 1 -type f -name '.env.*' ! -name '.env.example' -delete 2>/dev/null || true
+    docker compose down -v --remove-orphans --rmi local
 
 seed:
     -@uv run python -m app.seed_cli

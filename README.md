@@ -109,10 +109,11 @@ If `SQLITE_AUTO_RESET_SECONDS` is set to a positive value **and** you use SQLite
 | `just seed` | Same as startup: ensure tables + idempotent demo seed |
 | `just dev` | Dev server with reload |
 | `just run` | Production-style local server |
-| `just test` | Pytest |
+| `just test` | Format, format check, lint, pytest, then `docker compose build` and `docker compose up -d` |
 | `just lint` | Ruff check |
 | `just format` | Ruff format |
-| `just check` | Format check + lint + tests |
+| `just check` | Format check + lint + tests (no Docker) |
+| `just rm` | Remove `.env` and other `.env.*` except `.env.example`; Compose down with volumes, orphans, and local built images |
 | `just clean` | Drop local caches |
 | `docker compose up --build` | App container + Chainguard PostgreSQL (see [`docker-compose.yml`](docker-compose.yml)) |
 
@@ -121,6 +122,8 @@ If `SQLITE_AUTO_RESET_SECONDS` is set to a positive value **and** you use SQLite
 ```bash
 just test
 ```
+
+`just test` runs Ruff format, Ruff format `--check`, Ruff lint, Pytest, then builds and starts the full Compose stack in the background (`docker compose up -d`). For checks without Docker, use `just check`.
 
 Integration tests use an isolated in-memory SQLite engine via `tests/conftest.py` (dependency override for `get_session`).
 
