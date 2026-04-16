@@ -30,6 +30,8 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://edumedia:edumedia@db:5432/edumedia
       MEDIA_UPLOAD_DIR: /app/data/uploads
+      # Default must not use YAML quotes inside ${...} or the container sees literal "secret" with quotes.
+      TRACKER_SECRET: ${TRACKER_SECRET:-secret}
     depends_on:
       db:
         condition: service_healthy
