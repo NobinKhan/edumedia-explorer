@@ -19,6 +19,9 @@ def _is_sqlite() -> bool:
 
 def _reset_database_sync() -> None:
     """Close pooled connections, drop schema, recreate empty tables."""
+    if not _is_sqlite():
+        logger.warning("Database reset skipped: auto-reset applies only to SQLite")
+        return
     engine.dispose(close=True)
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)

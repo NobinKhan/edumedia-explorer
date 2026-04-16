@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
@@ -17,6 +18,17 @@ def _default_sqlite_url() -> str:
 
 
 DATABASE_URL = settings.database_url or _default_sqlite_url()
+
+
+def database_backend() -> str:
+    """Short label for health checks and logs (never includes credentials)."""
+    scheme = (urlparse(DATABASE_URL).scheme or "").lower()
+    if scheme.startswith("sqlite"):
+        return "sqlite"
+    if "postgres" in scheme:
+        return "postgresql"
+    return scheme or "unknown"
+
 
 _is_sqlite = DATABASE_URL.startswith("sqlite")
 _engine_kwargs: dict[str, Any] = {"echo": settings.sqlalchemy_echo}
