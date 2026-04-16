@@ -111,7 +111,9 @@ If `SQLITE_AUTO_RESET_SECONDS` is set to a positive value **and** you use SQLite
 
 ### Internal usage tracker
 
-When **`TRACKER_SECRET`** is set in the environment, the app enables an internal dashboard at **`/tracker`** (not listed in OpenAPI `/docs`). Sign in with the shared secret (or send header **`X-Tracker-Secret`** with the same value). The UI shows recent HTTP requests (method, matched route template, status, client IP, device class, OS, browser from `User-Agent`), plus aggregate counts by path and device. Rows are stored in the `request_logs` table; growth is capped by **`TRACKER_MAX_ROWS`** (default **50_000**), dropping oldest rows first.
+When **`TRACKER_SECRET`** is set in the environment, the app enables an internal dashboard at **`/tracker`** (not listed in OpenAPI `/docs`). Sign in with the shared secret (or send header **`X-Tracker-Secret`** with the same value). The UI shows recent HTTP requests (method, **actual request path** including query string when present, status, client IP, device class, OS, browser from `User-Agent`), plus aggregate counts by URL and device. Rows are stored in the `request_logs` table; growth is capped by **`TRACKER_MAX_ROWS`** (default **50_000**), dropping oldest rows first.
+
+From the dashboard **Danger zone**, you can reset all CMS data (drop and recreate every ORM table **except** `request_logs`) and re-run the demo seed; you must enter **`TRACKER_SECRET` again** on the confirmation page before the reset runs.
 
 **Security:** anyone with the secret can see client IPs and URLs—use HTTPS in production, rotate the secret, and leave **`TRACKER_SECRET` unset** to disable the feature entirely.
 

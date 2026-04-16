@@ -6,6 +6,12 @@
 {% block content %}
   <link rel="stylesheet" href="/static/css/tracker.css" />
   <div class="tracker-page">
+    {% if reset_ok %}
+      <div class="tracker-banner tracker-banner--success" role="status">
+        App data was reset and demo content was re-seeded. Usage logs were not cleared.
+      </div>
+    {% endif %}
+
     <header class="tracker-top">
       <div class="tracker-brand">Request analytics</div>
       <div class="tracker-actions">
@@ -33,7 +39,7 @@
 
     <div class="tracker-panels">
       <section class="tracker-panel" aria-labelledby="paths-heading">
-        <h2 class="tracker-panel__title" id="paths-heading">Top routes</h2>
+        <h2 class="tracker-panel__title" id="paths-heading">Top URLs</h2>
         {% set max_cnt = path_stats[0][1] if path_stats else 1 %}
         {% for path, cnt in path_stats %}
           <div class="tracker-bar">
@@ -73,7 +79,7 @@
             <tr>
               <th>Time</th>
               <th>Method</th>
-              <th>Route</th>
+              <th>URL</th>
               <th>Status</th>
               <th>IP</th>
               <th>Device</th>
@@ -110,6 +116,14 @@
           <a href="/tracker/dashboard?page={{ page + 1 }}">Next</a>
         {% endif %}
       </nav>
+    </section>
+
+    <section class="tracker-panel tracker-danger-zone" aria-labelledby="danger-heading">
+      <h2 class="tracker-panel__title" id="danger-heading">Danger zone</h2>
+      <p class="tracker-login__lead" style="margin-bottom:14px">
+        Wipe all application data and run the demo seed again. Request analytics in <code>request_logs</code> are preserved.
+      </p>
+      <a class="tracker-btn tracker-btn--danger" href="/tracker/reset-data">Reset app data…</a>
     </section>
   </div>
 {% endblock %}

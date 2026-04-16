@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body_extra %} class="page--tracker"{% endblock %}
+{% block container_class %}{% endblock %}
+
+{% block content %}
+  <link rel="stylesheet" href="/static/css/tracker.css" />
+  <div class="tracker-login">
+    <div class="tracker-login__card tracker-danger-card">
+      <h1 class="tracker-login__title">Reset app data</h1>
+      <p class="tracker-login__lead">
+        This permanently deletes all CMS tables (categories, pages, annotations, media rows, etc.),
+        then recreates them and runs the demo seed. <strong>Usage tracker rows are kept.</strong>
+      </p>
+      {% if error %}
+        <div class="tracker-alert" role="alert">{{ error }}</div>
+      {% endif %}
+      <form method="post" action="/tracker/reset-data" autocomplete="off">
+        <div class="tracker-field">
+          <label for="reset-secret">Enter <code>TRACKER_SECRET</code> again to confirm</label>
+          <input id="reset-secret" name="secret" type="password" required placeholder="Secret" />
+        </div>
+        <div class="tracker-reset-actions">
+          <button type="submit" class="tracker-btn tracker-btn--danger">Reset and re-seed</button>
+          <a class="tracker-btn tracker-btn--ghost" href="/tracker/dashboard">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

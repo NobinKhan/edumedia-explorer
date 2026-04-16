@@ -40,13 +40,14 @@ def _client_ip(request: Request) -> str:
     return ""
 
 
-def _route_path(request: Request) -> str:
-    route = request.scope.get("route")
-    if route is not None:
-        p = getattr(route, "path", None)
-        if isinstance(p, str) and p:
-            return p[:2048]
-    return request.url.path[:2048]
+def request_path_for_log(url_path: str, url_query: str = "") -> str:
+    """Observed path plus optional query string (not OpenAPI route templates)."""
+    path = url_path or "/"
+    if url_query:
+        combined = f"{path}?{url_query}"
+    else:
+        combined = path
+    return combined[:2048]
 
 
 def _parse_user_agent(ua: str | None) -> tuple[str, str, str]:
@@ -133,7 +134,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         ua_header = request.headers.get("user-agent")
         device_kind, os_family, browser_family = _parse_user_agent(ua_header)
         method = request.method
-        route_path = _route_path(request)
+        route_path = request_path_for_log(request.url.path, request.url.query or "")
         ip = _client_ip(request)
         ua_trunc = (ua_header or "")[:512]
         status = response.status_code
