@@ -1,0 +1,38 @@
+# Local stack: Chainguard PostgreSQL + app image (same Dockerfile as production).
+# Usage: `docker compose up --build` then open http://localhost:8000/docs
+
+name: edumedia-explorer
+
+services:
+  db:
+    image: cgr.dev/chainguard/postgres:latest
+    environment:
+      POSTGRES_USER: edumedia
+      POSTGRES_PASSWORD: edumedia
+      POSTGRES_DB: edumedia
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Uncomment to reach Postgres from the host (pick a free host port):
+    # ports:
+    #   - "5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "edumedia", "-d", "edumedia"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  web:
+    build: .
+    ports:
+      # Host 8000 is often taken; override: `WEB_PORT=8000 docker compose up`
+      - "${WEB_PORT:-8001}:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://edumedia:edumedia@db:5432/edumedia
+      MEDIA_UPLOAD_DIR: /app/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
