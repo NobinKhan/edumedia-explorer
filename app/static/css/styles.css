@@ -125,6 +125,7 @@ p { margin: 0; color: var(--muted); }
 .btn:hover { border-color: rgba(121, 167, 255, 0.55); }
 .btn--primary { background: rgba(121, 167, 255, 0.16); }
 .btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+.btn[aria-busy="true"] { opacity: 0.75; cursor: progress; }
 .field { display: grid; gap: 6px; }
 .label { font-size: 13px; color: rgba(233, 238, 252, 0.85); font-weight: 700; }
 .input, .select, .textarea {
@@ -146,6 +147,17 @@ p { margin: 0; color: var(--muted); }
 }
 .editor:focus { outline: none; }
 .muted { color: var(--muted); }
+.status--info,
+.status--success,
+.status--error {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.status--info { color: rgba(233, 238, 252, 0.82); }
+.status--success { color: rgba(96, 214, 181, 0.95); border-color: rgba(96, 214, 181, 0.30); background: rgba(96, 214, 181, 0.08); }
+.status--error { color: rgba(255, 160, 160, 0.95); border-color: rgba(255, 160, 160, 0.30); background: rgba(255, 160, 160, 0.08); }
 .split {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;

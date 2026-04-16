@@ -133,6 +133,30 @@ function toggleAnnFields(type) {
   $("ann_body_wrap").hidden = type === "youtube";
 }
 
+function setAnnStatus(kind, message) {
+  const node = $("ann_error");
+  if (!node) return;
+  node.textContent = message || "";
+  node.classList.remove("status--info", "status--error", "status--success");
+  if (!message) return;
+  if (kind === "error") node.classList.add("status--error");
+  else if (kind === "success") node.classList.add("status--success");
+  else node.classList.add("status--info");
+}
+
+function setButtonLoading(btn, isLoading, loadingLabel = "Working…") {
+  if (!btn) return;
+  if (isLoading) {
+    if (!btn.dataset.originalLabel) btn.dataset.originalLabel = btn.textContent || "";
+    btn.textContent = loadingLabel;
+    btn.disabled = true;
+    btn.setAttribute("aria-busy", "true");
+    return;
+  }
+  btn.textContent = btn.dataset.originalLabel || btn.textContent || "";
+  btn.removeAttribute("aria-busy");
+}
+
 function getPageId() {
   const elId = $("page_id");
   if (!elId) return null;
@@ -234,20 +258,30 @@ async function initEditorPage() {
   toggleAnnFields(annType.value);
 
   let captured = null;
+
+  function syncCreateAnnotationEnabled() {
+    const btn = $("btn-create-annotation");
+    if (!btn) return;
+    const pid = getPageId();
+    btn.disabled = !(captured && pid);
+  }
+
   $("btn-capture").addEventListener("click", () => {
     const res = selectionOffsets(editorRoot);
-    const err = $("ann_error");
     if (res && res.error) {
-      err.textContent = res.error;
+      setAnnStatus("error", res.error);
       captured = null;
       $("ann_trigger").value = "";
-      $("btn-create-annotation").disabled = true;
+      syncCreateAnnotationEnabled();
       return;
     }
-    err.textContent = "";
+    setAnnStatus("info", "");
     captured = res;
     $("ann_trigger").value = captured ? captured.trigger : "";
-    $("btn-create-annotation").disabled = !captured;
+    syncCreateAnnotationEnabled();
+    if (!getPageId()) {
+      setAnnStatus("info", "Save draft to enable annotations on this page.");
+    }
   });
 
   const pageId = getPageId();
@@ -269,11 +303,12 @@ async function initEditorPage() {
     }
   } else {
     await loadHierarchyForEdit(null);
+    syncCreateAnnotationEnabled();
+    setAnnStatus("info", "Save draft to enable annotations on this page.");
   }
 
   async function saveDraft() {
-    const err = $("ann_error");
-    err.textContent = "";
+    setAnnStatus("info", "");
     if (isEdit) {
       const payload = {
         category_id: parseInt($("category_id").value, 10),
@@ -293,7 +328,7 @@ async function initEditorPage() {
     return created;
   }
 
-  $("btn-save").addEventListener("click", () => saveDraft().catch((e) => ($("ann_error").textContent = e.message)));
+  $("btn-save").addEventListener("click", () => saveDraft().catch((e) => setAnnStatus("error", e.message)));
 
   if (!isEdit) {
     $("btn-preview").disabled = true;
@@ -329,9 +364,17 @@ async function initEditorPage() {
 
   $("btn-create-annotation").addEventListener("click", async () => {
     const pid = getPageId();
-    if (!pid || !captured) return;
-    const err = $("ann_error");
-    err.textContent = "";
+    if (!pid) {
+      setAnnStatus("info", "Save draft first to create annotations (the page needs an id).");
+      return;
+    }
+    if (!captured) {
+      setAnnStatus("info", "Use “Use current selection” to capture text before creating an annotation.");
+      return;
+    }
+    setAnnStatus("info", "");
+    const createBtn = $("btn-create-annotation");
+    setButtonLoading(createBtn, true, "Creating…");
     const type = $("ann_type").value;
     const body = $("ann_body").value;
     const payload = {
@@ -348,9 +391,20 @@ async function initEditorPage() {
     if (["image", "audio", "video"].includes(type) && !Number.isFinite(payload.media_asset_id)) {
       payload.media_asset_id = null;
     }
-    await apiJson("POST", `/api/v1/subject-pages/${pid}/annotations`, payload);
-    await refreshAnnotations(pid);
-    // Keep offsets stable: do not auto-re-render the editor content here.
+    try {
+      await apiJson("POST", `/api/v1/subject-pages/${pid}/annotations`, payload);
+      await refreshAnnotations(pid);
+      setAnnStatus("success", "Annotation created.");
+      captured = null;
+      $("ann_trigger").value = "";
+      syncCreateAnnotationEnabled();
+      // Keep offsets stable: do not auto-re-render the editor content here.
+    } catch (e) {
+      setAnnStatus("error", e && e.message ? e.message : String(e));
+    } finally {
+      setButtonLoading(createBtn, false);
+      syncCreateAnnotationEnabled();
+    }
   });
 
   const refreshAnnBtn = $("btn-refresh-ann");
