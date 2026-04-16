@@ -2,11 +2,9 @@
 
 FastAPI service for authoring **hierarchical subject detail pages** (category → sub-category → sub-sub-category → page), **rich HTML bodies**, and **annotations** (text, image, audio, video, YouTube, link) anchored to a single DOM text node, with **published** interactive HTML and a lightweight **Jinja2 + vanilla JS** public view.
 
-Full product intent and acceptance criteria live in [`NewWorkPlan.md`](NewWorkPlan.md). Implementation status, backlog, and handoff live under [`tracker/`](tracker/).
-
 ## Stack
 
-- Python **3.12+** (see `tracker/decisions.md` for the brief’s 3.14.4 note on this machine)
+- Python **3.12+**
 - FastAPI, uvicorn, SQLAlchemy, SQLite (default DB under `data/edumedia.db`), nh3 + BeautifulSoup for sanitization/rendering
 - uv, just, pytest, ruff
 
@@ -28,7 +26,7 @@ Open the URL printed by the dev server. API docs: `/docs`. Landing: `/`.
 | `GET /healthz` | Liveness JSON |
 | `GET /api/v1/meta` | API meta |
 | `GET /docs` | OpenAPI UI |
-| `GET /editor` | Editor shell (UI in progress) |
+| `GET /editor` | Editor dashboard |
 | `GET /pages/{slug}` | Published subject page (404 if not `published`) |
 
 ## Configuration
