@@ -269,7 +269,39 @@ function initModal() {
   document.addEventListener("keydown", onKeyDown);
 }
 
+async function loadPublishedPages() {
+  const listEl = document.getElementById("landing-pages-list");
+  const emptyEl = document.getElementById("landing-pages-empty");
+  const errEl = document.getElementById("landing-pages-error");
+  if (!listEl || !emptyEl || !errEl) return;
+
+  errEl.textContent = "";
+  listEl.innerHTML = "";
+  emptyEl.hidden = true;
+
+  try {
+    const resp = await fetch("/api/v1/subject-pages/?status=published", { headers: { Accept: "application/json" } });
+    if (!resp.ok) throw new Error(`Failed to load pages (${resp.status})`);
+    const pages = await resp.json();
+    emptyEl.hidden = pages.length !== 0;
+    for (const p of pages) {
+      const row = createEl("div", { class: "landing__page-item" }, [
+        createEl("div", { class: "landing__page-title", text: p.title || "" }),
+        createEl("div", { class: "landing__page-summary", text: p.summary || "" }),
+      ]);
+      const actions = createEl("div", { class: "toolbar" }, [
+        createEl("a", { class: "btn", href: `/pages/${p.slug}`, text: "Open" }),
+      ]);
+      row.appendChild(actions);
+      listEl.appendChild(row);
+    }
+  } catch (e) {
+    errEl.textContent = e && e.message ? e.message : String(e);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initAccordion();
   initModal();
+  loadPublishedPages();
 });

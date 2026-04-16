@@ -99,6 +99,56 @@ function buildPlainMapping(root) {
   return mapping;
 }
 
+function recaptureOffsetsFromTrigger(editorRoot, triggerText, preferredStart = null) {
+  const trigger = (triggerText || "").trim();
+  if (!trigger) return null;
+  const mapping = buildPlainMapping(editorRoot);
+  if (mapping.length === 0) return null;
+  const chars = new Array(mapping.length);
+  for (let i = 0; i < mapping.length; i++) {
+    const m = mapping[i];
+    const text = m.node.nodeValue || "";
+    chars[i] = text[m.offset] || "";
+  }
+  const plain = chars.join("");
+  if (!plain) return null;
+
+  const positions = [];
+  let idx = plain.indexOf(trigger);
+  while (idx !== -1) {
+    positions.push(idx);
+    idx = plain.indexOf(trigger, idx + 1);
+  }
+  if (positions.length === 0) return null;
+
+  let best = positions[0];
+  if (typeof preferredStart === "number" && Number.isFinite(preferredStart)) {
+    let bestDist = Math.abs(best - preferredStart);
+    for (const p of positions) {
+      const d = Math.abs(p - preferredStart);
+      if (d < bestDist) {
+        bestDist = d;
+        best = p;
+      }
+    }
+  }
+
+  return { trigger, start_offset: best, end_offset: best + trigger.length };
+}
+
+function previewPlainSlice(editorRoot, start, end) {
+  const mapping = buildPlainMapping(editorRoot);
+  const safeStart = Math.max(0, Math.min(mapping.length, start));
+  const safeEnd = Math.max(0, Math.min(mapping.length, end));
+  const chars = [];
+  for (let i = safeStart; i < safeEnd; i++) {
+    const m = mapping[i];
+    const text = m.node.nodeValue || "";
+    chars.push(text[m.offset] || "");
+  }
+  return chars.join("");
+}
+
 function selectionOffsets(editorRoot) {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return null;
@@ -127,10 +177,20 @@ function selectionOffsets(editorRoot) {
 }
 
 function toggleAnnFields(type) {
-  $("ann_media_wrap").hidden = !["image", "audio", "video"].includes(type);
-  $("ann_youtube_wrap").hidden = type !== "youtube";
-  $("ann_link_label_wrap").hidden = type !== "link_note";
-  $("ann_body_wrap").hidden = type === "youtube";
+  const isMedia = ["image", "audio", "video"].includes(type);
+  const isYoutube = type === "youtube";
+  const isText = type === "text";
+  $("ann_body_wrap").hidden = !isText;
+  $("ann_youtube_wrap").hidden = !isYoutube;
+  $("ann_media_wrap").hidden = !isMedia;
+  if (!isMedia) {
+    const m = $("ann_media");
+    const meta = $("ann_media_meta");
+    const file = $("ann_media_file");
+    if (m) m.value = "";
+    if (meta) meta.textContent = "";
+    if (file) file.value = "";
+  }
 }
 
 function setAnnStatus(kind, message) {
@@ -148,6 +208,7 @@ function setButtonLoading(btn, isLoading, loadingLabel = "Working…") {
   if (!btn) return;
   if (isLoading) {
     if (!btn.dataset.originalLabel) btn.dataset.originalLabel = btn.textContent || "";
+    if (!("prevDisabled" in btn.dataset)) btn.dataset.prevDisabled = btn.disabled ? "1" : "0";
     btn.textContent = loadingLabel;
     btn.disabled = true;
     btn.setAttribute("aria-busy", "true");
@@ -155,6 +216,12 @@ function setButtonLoading(btn, isLoading, loadingLabel = "Working…") {
   }
   btn.textContent = btn.dataset.originalLabel || btn.textContent || "";
   btn.removeAttribute("aria-busy");
+  if ("prevDisabled" in btn.dataset) {
+    btn.disabled = btn.dataset.prevDisabled === "1";
+    delete btn.dataset.prevDisabled;
+  } else {
+    btn.disabled = false;
+  }
 }
 
 function getPageId() {
@@ -252,10 +319,145 @@ async function initEditorPage() {
   }
 
   const annType = $("ann_type");
-  annType.addEventListener("change", () => {
-    toggleAnnFields(annType.value);
-  });
+  const mediaPickBtn = $("btn-ann-pick-media");
+  const mediaFileInput = $("ann_media_file");
+  if (annType) {
+    annType.addEventListener("change", () => {
+      toggleAnnFields(annType.value);
+      if (mediaPickBtn && mediaFileInput) {
+        const t = annType.value;
+        const label =
+          t === "image"
+            ? "Select image"
+            : t === "audio"
+              ? "Select audio"
+              : t === "video"
+                ? "Select video"
+                : "Select file";
+        mediaPickBtn.textContent = label;
+        mediaFileInput.accept =
+          t === "image" ? "image/*" : t === "audio" ? "audio/*" : t === "video" ? "video/*" : "";
+      }
+    });
+  }
   toggleAnnFields(annType.value);
+  if (mediaPickBtn && mediaFileInput) {
+    mediaPickBtn.textContent = "Select file";
+    mediaPickBtn.addEventListener("click", () => {
+      if (!annType) return;
+      const t = annType.value;
+      if (!["image", "audio", "video"].includes(t)) {
+        setAnnStatus("info", "Select Image, Audio, or Video to upload a file.");
+        return;
+      }
+      setAnnStatus("info", "");
+      mediaFileInput.click();
+    });
+
+    mediaFileInput.addEventListener("change", async () => {
+      if (!annType) return;
+      const t = annType.value;
+      const f = mediaFileInput.files && mediaFileInput.files[0] ? mediaFileInput.files[0] : null;
+      if (!f) return;
+      const mime = f.type || "";
+      const ok =
+        (t === "image" && mime.startsWith("image/")) ||
+        (t === "audio" && mime.startsWith("audio/")) ||
+        (t === "video" && mime.startsWith("video/"));
+      if (!ok) {
+        setAnnStatus("error", `Invalid file type (${mime || "unknown"}). Please choose a ${t} file.`);
+        mediaFileInput.value = "";
+        return;
+      }
+
+      const pid = getPageId();
+      if (!pid) {
+        setAnnStatus("info", "Save draft in this modal first (the page needs an id) before uploading media.");
+        mediaFileInput.value = "";
+        return;
+      }
+
+      const title = ($("ann_title") && $("ann_title").value.trim()) || f.name;
+      const alt = t === "image" ? title : "";
+      const fd = new FormData();
+      fd.append("file", f);
+      fd.append("asset_type", t);
+      fd.append("title", title);
+      if (alt) fd.append("alt_text", alt);
+
+      setAnnStatus("info", "");
+      setButtonLoading(mediaPickBtn, true, "Uploading…");
+      try {
+        const resp = await fetch("/api/v1/media-assets/upload", { method: "POST", body: fd, headers: { Accept: "application/json" } });
+        const text = await resp.text();
+        const payload = text ? JSON.parse(text) : null;
+        if (!resp.ok) {
+          const msg = payload && payload.detail ? payload.detail : `Upload failed (${resp.status})`;
+          throw new Error(msg);
+        }
+        const m = $("ann_media");
+        const meta = $("ann_media_meta");
+        if (m) m.value = String(payload.id);
+        if (meta) meta.textContent = `Uploaded: ${f.name}`;
+        setAnnStatus("success", "Media uploaded.");
+        syncCreateAnnotationEnabled();
+      } catch (e) {
+        setAnnStatus("error", e && e.message ? e.message : String(e));
+        mediaFileInput.value = "";
+      } finally {
+        setButtonLoading(mediaPickBtn, false);
+      }
+    });
+  }
+
+  const annModal = $("ann_modal");
+  const annModalOverlay = $("ann_modal_overlay");
+  const annModalDialog = $("ann_modal_dialog");
+  const annPanel = $("ann_panel");
+  const annOpen = $("btn-ann-open");
+  const annClose = $("btn-ann-close");
+
+  function openAnnModal() {
+    if (!annModal) return;
+    annModal.hidden = false;
+    setAnnStatus("info", "");
+    if (annType) toggleAnnFields(annType.value);
+    const focusEl = annModalDialog || $("ann_title");
+    if (focusEl) focusEl.focus();
+  }
+
+  function closeAnnModal() {
+    if (!annModal) return;
+    annModal.hidden = true;
+    setAnnStatus("info", "");
+  }
+
+  if (annOpen && annModal) {
+    annOpen.addEventListener("click", () => {
+      // Prefer capturing selection on open so the flow is: select text -> add annotation.
+      const res = selectionOffsets(editorRoot);
+      if (res && res.error) {
+        openAnnModal();
+        setAnnStatus("error", res.error);
+        return;
+      }
+      captured = res;
+      $("ann_trigger").value = captured ? captured.trigger : "";
+      openAnnModal();
+      if (annType) toggleAnnFields(annType.value);
+      syncCreateAnnotationEnabled();
+      if (!getPageId()) {
+        setAnnStatus("info", "Save draft to enable annotations on this page.");
+      }
+    });
+  }
+
+  if (annClose && annModal) annClose.addEventListener("click", closeAnnModal);
+  if (annModalOverlay && annModal) annModalOverlay.addEventListener("click", closeAnnModal);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (annModal && !annModal.hidden) closeAnnModal();
+  });
 
   let captured = null;
 
@@ -330,20 +532,60 @@ async function initEditorPage() {
 
   $("btn-save").addEventListener("click", () => saveDraft().catch((e) => setAnnStatus("error", e.message)));
 
-  if (!isEdit) {
-    $("btn-preview").disabled = true;
-    $("btn-publish").disabled = true;
+  async function saveDraftInPlace() {
+    setAnnStatus("info", "");
+    const created = await apiJson("POST", "/api/v1/subject-pages/", gatherPagePayload());
+    const pageIdEl = $("page_id");
+    if (pageIdEl) pageIdEl.value = String(created.id);
+    setAnnStatus("success", "Draft saved.");
+    // Sync editor DOM to server-stored HTML to keep offset mapping consistent with backend.
+    if (created && typeof created.raw_content === "string") {
+      editorRoot.innerHTML = created.raw_content || "<p></p>";
+    } else if (created && created.id) {
+      try {
+        const fresh = await apiGet(`/api/v1/subject-pages/${created.id}`);
+        if (fresh && typeof fresh.raw_content === "string") {
+          editorRoot.innerHTML = fresh.raw_content || "<p></p>";
+        }
+      } catch {
+        // Ignore and keep current DOM if fetch fails.
+      }
+    }
+    // After saving, re-capture offsets from trigger text to avoid stale/out-of-range offsets.
+    if (captured && captured.trigger) {
+      const rebuilt = recaptureOffsetsFromTrigger(editorRoot, captured.trigger, captured.start_offset);
+      if (rebuilt) {
+        captured = rebuilt;
+        $("ann_trigger").value = rebuilt.trigger;
+      }
+    }
+    // Enable preview/publish once we have an id.
+    const publishBtn = $("btn-publish");
+    if (publishBtn) publishBtn.disabled = false;
+    syncCreateAnnotationEnabled();
+    return created;
   }
 
-  const previewBtn = $("btn-preview");
-  if (previewBtn) {
-    previewBtn.addEventListener("click", async () => {
-      const pid = getPageId();
-      if (!pid) return;
-      const payload = { raw_content: editorRoot.innerHTML };
-      const r = await apiJson("POST", `/api/v1/subject-pages/${pid}/preview`, payload);
-      setPreviewHtml(r.rendered_content);
+  const annSaveDraftBtn = $("btn-ann-save-draft");
+  if (annSaveDraftBtn) {
+    annSaveDraftBtn.addEventListener("click", async () => {
+      if (getPageId()) {
+        setAnnStatus("info", "Draft already saved.");
+        return;
+      }
+      setButtonLoading(annSaveDraftBtn, true, "Saving…");
+      try {
+        await saveDraftInPlace();
+      } catch (e) {
+        setAnnStatus("error", e && e.message ? e.message : String(e));
+      } finally {
+        setButtonLoading(annSaveDraftBtn, false);
+      }
     });
+  }
+
+  if (!isEdit) {
+    $("btn-publish").disabled = true;
   }
 
   const publishBtn = $("btn-publish");
@@ -365,12 +607,25 @@ async function initEditorPage() {
   $("btn-create-annotation").addEventListener("click", async () => {
     const pid = getPageId();
     if (!pid) {
-      setAnnStatus("info", "Save draft first to create annotations (the page needs an id).");
+      setAnnStatus("info", "Save draft in this modal first (the page needs an id).");
       return;
     }
     if (!captured) {
       setAnnStatus("info", "Use “Use current selection” to capture text before creating an annotation.");
       return;
+    }
+    // Defensive: ensure offsets still map into current content.
+    const mappingLen = buildPlainMapping(editorRoot).length;
+    if (captured.start_offset < 0 || captured.end_offset > mappingLen) {
+      const rebuilt = recaptureOffsetsFromTrigger(editorRoot, captured.trigger, captured.start_offset);
+      if (rebuilt) {
+        captured = rebuilt;
+        $("ann_trigger").value = rebuilt.trigger;
+        syncCreateAnnotationEnabled();
+      } else {
+        setAnnStatus("error", "Selection is stale. Use “Use current selection” again, then create the annotation.");
+        return;
+      }
     }
     setAnnStatus("info", "");
     const createBtn = $("btn-create-annotation");
@@ -383,9 +638,8 @@ async function initEditorPage() {
       start_offset: captured.start_offset,
       end_offset: captured.end_offset,
       title: $("ann_title").value || "",
-      body_text: type === "youtube" ? null : body || null,
+      body_text: type === "text" ? (body || null) : null,
       youtube_url: type === "youtube" ? ($("ann_youtube").value || null) : null,
-      link_label: type === "link_note" ? ($("ann_link_label").value || null) : null,
       media_asset_id: ["image", "audio", "video"].includes(type) ? parseInt($("ann_media").value, 10) : null,
     };
     if (["image", "audio", "video"].includes(type) && !Number.isFinite(payload.media_asset_id)) {
@@ -418,7 +672,6 @@ async function initEditorPage() {
 
   // Enable preview/publish for edit page.
   if (isEdit) {
-    $("btn-preview").disabled = false;
     $("btn-publish").disabled = false;
   }
 }
@@ -426,7 +679,7 @@ async function initEditorPage() {
 document.addEventListener("DOMContentLoaded", () => {
   initEditorPage().catch((e) => {
     const err = document.getElementById("ann_error");
-    if (err) err.textContent = e.message || String(e);
+    if (err) err.textContent = e && e.message ? e.message : String(e);
     else console.error(e);
   });
 });

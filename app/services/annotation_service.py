@@ -15,6 +15,7 @@ from app.services.render_service import (
     slice_plain_text,
 )
 from app.util.youtube import is_plausible_youtube_url
+from bs4 import BeautifulSoup, NavigableString
 
 
 class AnnotationService:
@@ -78,6 +79,66 @@ class AnnotationService:
             if not (link_label or "").strip() and not (body_text or "").strip():
                 raise bad_request("link_note annotations require link_label and/or body_text")
 
+    def _reanchor_offsets(
+        self, *, page_raw: str, trigger_text: str, preferred_start: int | None
+    ) -> tuple[int, int] | None:
+        # Try exact trigger first; fall back to trimmed trigger if needed.
+        candidates = [trigger_text or ""]
+        trimmed = (trigger_text or "").strip()
+        if trimmed and trimmed != candidates[0]:
+            candidates.append(trimmed)
+        candidates = [c for c in candidates if c]
+        if not candidates:
+            return None
+        soup = BeautifulSoup(page_raw or "", "html.parser")
+        for tag in soup(["script", "style"]):
+            tag.decompose()
+        mapping: list[tuple[NavigableString, int]] = []
+        for node in soup.descendants:
+            if (
+                isinstance(node, NavigableString)
+                and node.parent
+                and node.parent.name
+                and node.parent.name not in ("script", "style")
+            ):
+                chunk = str(node)
+                for i in range(len(chunk)):
+                    mapping.append((node, i))
+        if not mapping:
+            return None
+        chars = []
+        for n, i in mapping:
+            chunk = str(n)
+            chars.append(chunk[i : i + 1])
+        plain = "".join(chars)
+        if not plain:
+            return None
+        for trigger in candidates:
+            positions: list[int] = []
+            idx = plain.find(trigger)
+            while idx != -1:
+                positions.append(idx)
+                idx = plain.find(trigger, idx + 1)
+            if not positions:
+                continue
+            best = positions[0]
+            if preferred_start is not None:
+                best_dist = abs(best - preferred_start)
+                for p in positions:
+                    d = abs(p - preferred_start)
+                    if d < best_dist:
+                        best, best_dist = p, d
+            start, end = best, best + len(trigger)
+            if not offsets_use_single_text_node(page_raw, start, end):
+                # Try other occurrences that satisfy single-text-node constraint.
+                for p in positions:
+                    s, e = p, p + len(trigger)
+                    if offsets_use_single_text_node(page_raw, s, e):
+                        start, end = s, e
+                        break
+            return (start, end)
+        return None
+
     def list_for_page(self, page_id: int):
         PageService(self.session).get(page_id)
         return self.repo.list_for_page(page_id)
@@ -90,12 +151,32 @@ class AnnotationService:
 
     def create(self, page_id: int, payload: AnnotationCreate):
         page = PageService(self.session).get(page_id)
+        # If client offsets are stale/mismatched, re-anchor using backend mapping.
+        plain_len = plain_text_length(page.raw_content)
+        start_offset = payload.start_offset
+        end_offset = payload.end_offset
+        try:
+            segment = slice_plain_text(page.raw_content, start_offset, end_offset)
+        except ValueError:
+            segment = None
+        if (
+            start_offset < 0
+            or end_offset > plain_len
+            or (segment is not None and segment != payload.trigger_text)
+        ):
+            anchored = self._reanchor_offsets(
+                page_raw=page.raw_content,
+                trigger_text=payload.trigger_text,
+                preferred_start=start_offset if start_offset >= 0 else None,
+            )
+            if anchored is not None:
+                start_offset, end_offset = anchored
         self._validate_payload(
             page_raw=page.raw_content,
             annotation_type=payload.annotation_type,
             trigger_text=payload.trigger_text,
-            start_offset=payload.start_offset,
-            end_offset=payload.end_offset,
+            start_offset=start_offset,
+            end_offset=end_offset,
             body_text=payload.body_text,
             media_asset_id=payload.media_asset_id,
             youtube_url=payload.youtube_url,
@@ -105,8 +186,8 @@ class AnnotationService:
             subject_page_id=page_id,
             annotation_type=payload.annotation_type,
             trigger_text=payload.trigger_text,
-            start_offset=payload.start_offset,
-            end_offset=payload.end_offset,
+            start_offset=start_offset,
+            end_offset=end_offset,
             display_mode=payload.display_mode,
             title=payload.title,
             body_text=payload.body_text,

@@ -12,9 +12,9 @@
     <div class="toolbar">
       <a class="btn" href="/editor">Back</a>
       <button class="btn btn--primary" type="button" id="btn-save">Save</button>
-      <button class="btn" type="button" id="btn-preview">Preview</button>
-      <button class="btn" type="button" id="btn-publish">Publish</button>
-      <a class="btn" id="btn-view" href="#" hidden>View public</a>
+      <button class="btn btn--success" type="button" id="btn-publish">Publish</button>
+      <span class="toolbar__spacer" aria-hidden="true"></span>
+      <a class="btn btn--ghost" id="btn-view" href="#" hidden>Preview</a>
     </div>
 
     <section class="card stack" aria-label="Page fields">
@@ -53,59 +53,87 @@
         <button class="btn" type="button" data-cmd="italic"><i>I</i></button>
         <button class="btn" type="button" data-cmd="underline"><u>U</u></button>
         <button class="btn" type="button" data-cmd="highlight">Highlight</button>
+        <span class="muted">|</span>
+        <button class="btn btn--primary" type="button" id="btn-ann-open">Add annotation</button>
         <span class="muted">Select text then format.</span>
       </div>
+
+      <div class="modal" id="ann_modal" hidden>
+        <div class="modal__overlay" id="ann_modal_overlay"></div>
+        <div
+          class="modal__dialog"
+          id="ann_modal_dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ann_modal_title"
+          aria-describedby="ann_modal_desc"
+          tabindex="-1"
+        >
+          <div class="modal__header">
+            <div class="modal__titles">
+              <div class="modal__title" id="ann_modal_title">Add annotation</div>
+              <div class="modal__desc" id="ann_modal_desc">Select type, capture text, then submit.</div>
+            </div>
+            <button class="icon-btn" type="button" aria-label="Close dialog" id="btn-ann-close">✕</button>
+          </div>
+          <div class="modal__body">
+            <div id="ann_panel" class="ann-panel stack">
+              <div class="field">
+                <label class="label" for="ann_type">Type</label>
+                <select class="select" id="ann_type">
+                  <option value="text">Text</option>
+                  <option value="image">Image</option>
+                  <option value="audio">Audio</option>
+                  <option value="video">Video</option>
+                  <option value="youtube">YouTube</option>
+                </select>
+              </div>
+
+              <div class="toolbar">
+                <button class="btn" type="button" id="btn-capture">Use current selection</button>
+              </div>
+              <div class="field">
+                <label class="label" for="ann_trigger">Selected text</label>
+                <input class="input" id="ann_trigger" readonly />
+              </div>
+              <div class="field">
+                <label class="label" for="ann_title">Title</label>
+                <input class="input" id="ann_title" placeholder="Optional title" />
+              </div>
+              <div class="field" id="ann_body_wrap">
+                <label class="label" for="ann_body">Body</label>
+                <textarea class="textarea" id="ann_body" placeholder="Text note..."></textarea>
+              </div>
+              <div class="field" id="ann_youtube_wrap" hidden>
+                <label class="label" for="ann_youtube">YouTube URL</label>
+                <input class="input" id="ann_youtube" placeholder="https://www.youtube.com/watch?v=..." />
+              </div>
+              <div class="field" id="ann_media_wrap" hidden>
+                <label class="label">Media</label>
+                <input class="input" id="ann_media" type="hidden" />
+                <input class="input" id="ann_media_file" type="file" hidden />
+                <div class="toolbar">
+                  <button class="btn" type="button" id="btn-ann-pick-media">Select file</button>
+                  <span class="muted" id="ann_media_meta"></span>
+                </div>
+              </div>
+              <div class="toolbar">
+                <button class="btn btn--primary" type="button" id="btn-create-annotation" disabled>Create annotation</button>
+              </div>
+              <div id="ann_error" class="muted" role="status" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="editor" class="editor" contenteditable="true" spellcheck="true"></div>
     </section>
 
-    <section class="card stack" aria-label="Annotation creation">
-      <div class="card__title">Annotation</div>
-      <p class="muted">Select text in the editor, then attach a note or media.</p>
+    <section class="card stack" aria-label="Existing annotations">
+      <div class="card__title">Annotations</div>
       <div class="toolbar">
-        <button class="btn" type="button" id="btn-capture">Use current selection</button>
         <button class="btn" type="button" id="btn-refresh-ann">Refresh list</button>
       </div>
-      <div class="field">
-        <label class="label" for="ann_trigger">Selected text</label>
-        <input class="input" id="ann_trigger" readonly />
-      </div>
-      <div class="field">
-        <label class="label" for="ann_type">Type</label>
-        <select class="select" id="ann_type">
-          <option value="text">Text</option>
-          <option value="image">Image</option>
-          <option value="audio">Audio</option>
-          <option value="video">Video</option>
-          <option value="youtube">YouTube</option>
-          <option value="link_note">Link note</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="label" for="ann_title">Title</label>
-        <input class="input" id="ann_title" placeholder="Optional title" />
-      </div>
-      <div class="field" id="ann_body_wrap">
-        <label class="label" for="ann_body">Body</label>
-        <textarea class="textarea" id="ann_body" placeholder="Text note or link URL..."></textarea>
-      </div>
-      <div class="field" id="ann_youtube_wrap" hidden>
-        <label class="label" for="ann_youtube">YouTube URL</label>
-        <input class="input" id="ann_youtube" placeholder="https://www.youtube.com/watch?v=..." />
-      </div>
-      <div class="field" id="ann_link_label_wrap" hidden>
-        <label class="label" for="ann_link_label">Link label</label>
-        <input class="input" id="ann_link_label" placeholder="Open link" />
-      </div>
-      <div class="field" id="ann_media_wrap" hidden>
-        <label class="label" for="ann_media">Media asset id</label>
-        <input class="input" id="ann_media" inputmode="numeric" placeholder="Create via /api/v1/media-assets first" />
-      </div>
-      <div class="toolbar">
-        <button class="btn btn--primary" type="button" id="btn-create-annotation" disabled>Create annotation</button>
-      </div>
-      <div id="ann_error" class="muted" role="status" aria-live="polite"></div>
-
-      <div class="card__title" style="margin-top: 8px;">Existing annotations</div>
       <div id="ann_list" class="stack"></div>
     </section>
 

@@ -24,6 +24,7 @@
       <div class="landing__actions">
         <a class="landing__btn landing__btn--primary" href="/editor">Open editor</a>
         <a class="landing__btn landing__btn--ghost" href="/pages/photosynthesis">View demo page</a>
+        <a class="landing__btn landing__btn--secondary" href="#pages">Browse pages</a>
       </div>
       {% if show_dev_setup_hint %}
       <p class="landing__hint">
@@ -32,34 +33,12 @@
       {% endif %}
     </section>
 
-    <section class="landing__features" aria-labelledby="features-heading">
-      <h2 class="landing__section-title" id="features-heading">What you get</h2>
-      <ul class="landing__grid">
-        <li class="landing__card">
-          <span class="landing__card-icon" aria-hidden="true">◇</span>
-          <h3 class="landing__card-title">Structured content</h3>
-          <p class="landing__card-text">
-            Categories, sub-categories, and sub-sub-categories keep long curricula organized before
-            you attach a subject page.
-          </p>
-        </li>
-        <li class="landing__card">
-          <span class="landing__card-icon landing__card-icon--mint" aria-hidden="true">◇</span>
-          <h3 class="landing__card-title">Word-like editing</h3>
-          <p class="landing__card-text">
-            Bold, italic, underline, and highlight in the editor—then preview the server-rendered
-            HTML before you publish.
-          </p>
-        </li>
-        <li class="landing__card">
-          <span class="landing__card-icon landing__card-icon--sky" aria-hidden="true">◇</span>
-          <h3 class="landing__card-title">Interactive explanations</h3>
-          <p class="landing__card-text">
-            Text, images, audio, video, YouTube, and link-style notes open in an accessible modal on
-            the public page.
-          </p>
-        </li>
-      </ul>
+    <section class="landing__panel" id="pages" aria-labelledby="pages-heading">
+      <h2 class="landing__section-title" id="pages-heading">Published pages</h2>
+      <p class="landing__panel-text">Browse all published subject pages.</p>
+      <div id="landing-pages-error" class="muted" role="status" aria-live="polite"></div>
+      <div id="landing-pages-empty" class="muted" hidden>No published pages yet.</div>
+      <div id="landing-pages-list" class="landing__page-list"></div>
     </section>
 
     <section class="landing__panel" aria-labelledby="dev-heading">
