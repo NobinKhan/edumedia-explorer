@@ -31,7 +31,7 @@ just install
 just dev
 ```
 
-On startup the app ensures tables exist with SQLAlchemy `create_all` (additive only—it never drops tables) and runs the idempotent demo `seed()` once per process start. You can still run `just seed` manually if you want the same bootstrap without restarting the server.
+On startup the app ensures tables exist with SQLAlchemy `create_all` (additive only—it never drops tables) and runs the idempotent demo `seed()` once per process start. To run the same bootstrap without restarting, use `uv run python -m app.seed_cli`.
 
 Open the URL printed by the dev server. API docs: `/docs`. Landing: `/`.
 
@@ -45,7 +45,7 @@ To bring the stack up manually:
 docker compose up --build
 ```
 
-To run **Ruff format, format check, lint, Pytest**, then **`docker compose build`** and start the stack in the background, use **`just test`** (needs Docker; first image build can take several minutes). For the same Python checks **without** Docker, use **`just check`** (see [Commands](#commands) and [Tests](#tests)).
+To run **Ruff format, format check, lint, Pytest**, then **`docker compose build`** and start the stack in the background, use **`just test`** (needs Docker; first image build can take several minutes). For the same Python checks **without** Docker, run the first four `uv` lines under [Tests](#tests) (or copy them from the `just test` recipe in the [`justfile`](justfile)).
 
 - **Database**: [`cgr.dev/chainguard/postgres:latest`](https://images.chainguard.dev/directory/image/postgres/overview) with a named volume for data (optional `ports` mapping is commented in the compose file if you need host access).
 - **App**: builds the [`Dockerfile`](Dockerfile); connects with `postgresql+psycopg://edumedia:edumedia@db:5432/edumedia`.
@@ -95,7 +95,7 @@ That combination—Wolfi base, frozen uv lock, split stages, non-root user—is 
 
 See [`.env.example`](.env.example). **`ENVIRONMENT`**: omit it for production-like defaults (`production`). Set **`ENVIRONMENT=development`** in `.env` for local work (for example the landing page dev hint). Optional: `DATABASE_URL`, `MEDIA_UPLOAD_DIR`, `SQLALCHEMY_ECHO`.
 
-**Schema and demo data:** at startup the service calls `create_all` with `checkfirst=True` (creates missing tables only; no migrations and no `DROP`). It then runs the same idempotent demo seed as `just seed`. Destructive resets are limited to the optional SQLite demo interval described below.
+**Schema and demo data:** at startup the service calls `create_all` with `checkfirst=True` (creates missing tables only; no migrations and no `DROP`). It then runs the same idempotent demo seed as `uv run python -m app.seed_cli`. Destructive resets are limited to the optional SQLite demo interval described below.
 
 For **PostgreSQL**, set `DATABASE_URL` to a SQLAlchemy URL using **psycopg v3**, for example:
 
@@ -107,7 +107,7 @@ The bundled [`docker-compose.yml`](docker-compose.yml) wires this for the `web` 
 
 ### SQLite auto-reset (demos only)
 
-If `SQLITE_AUTO_RESET_SECONDS` is set to a positive value **and** you use SQLite, the app will **drop and recreate all tables** on that interval (e.g. `3600` for hourly). This prevents unbounded growth in throwaway environments. It is **destructive**—leave unset (`0`, the default) for normal use. After each reset, **`seed()` runs by default** (same as `just seed`); set `SQLITE_AUTO_RESET_SEED=false` to leave the database empty instead.
+If `SQLITE_AUTO_RESET_SECONDS` is set to a positive value **and** you use SQLite, the app will **drop and recreate all tables** on that interval (e.g. `3600` for hourly). This prevents unbounded growth in throwaway environments. It is **destructive**—leave unset (`0`, the default) for normal use. After each reset, **`seed()` runs by default** (same as the seed CLI); set `SQLITE_AUTO_RESET_SEED=false` to leave the database empty instead.
 
 ### Internal usage tracker
 
@@ -123,13 +123,9 @@ From the dashboard **Danger zone**, you can reset all CMS data (drop and recreat
 |---------|---------|
 | `just dev-setup` | Create `.env` from `.env.example` if missing; start Compose Postgres (`db`) |
 | `just install` | `uv sync` dependencies |
-| `just seed` | Same as startup: ensure tables + idempotent demo seed |
 | `just dev` | Dev server with reload |
 | `just run` | Production-style local server |
 | `just test` | Format, format check, lint, pytest, then `docker compose build` and `docker compose up -d` |
-| `just lint` | Ruff check |
-| `just format` | Ruff format |
-| `just check` | Format check + lint + tests (no Docker) |
 | `just rm` | Remove `.env` and other `.env.*` except `.env.example`; Compose down with volumes, orphans, and local built images |
 | `just clean` | Drop local caches |
 | `docker compose up --build` | App container + Chainguard PostgreSQL (see [`docker-compose.yml`](docker-compose.yml)) |
@@ -147,10 +143,13 @@ Runs, in order: `ruff format`, `ruff format --check`, `ruff check`, `pytest`, th
 **Python only (CI-friendly, no Docker):**
 
 ```bash
-just check
+uv run ruff format .
+uv run ruff format --check .
+uv run ruff check .
+uv run pytest
 ```
 
-Runs format check, lint, and tests—same checks as the first half of `just test`, without Compose.
+Same checks as the first half of `just test`, without Compose.
 
 Integration tests use an isolated in-memory SQLite engine via `tests/conftest.py` (dependency override for `get_session`). The `/healthz` route still uses the process-wide engine from [`app/db.py`](app/db.py) (your configured `DATABASE_URL` or default SQLite file).
 

@@ -24,31 +24,17 @@ run:
     uv run fastapi run app/main.py --port "$port"
 
 test:
-    uv run ruff format .
-    uv run ruff format --check .
-    uv run ruff check .
-    uv run pytest
-    docker compose build
-    docker compose up -d
-
-rm:
-    rm -f .env
-    find . -maxdepth 1 -type f -name '.env.*' ! -name '.env.example' -delete 2>/dev/null || true
-    docker compose down -v --remove-orphans --rmi local
-
-seed:
-    -@uv run python -m app.seed_cli
-
-lint:
-    -@uv run ruff check .
-
-format:
     -@uv run ruff format .
-
-check:
     -@uv run ruff format --check .
     -@uv run ruff check .
     -@uv run pytest
+    -@docker compose build
+    -@docker compose up -d
+
+rm:
+    -@rm -f .env
+    -@find . -maxdepth 1 -type f -name '.env.*' ! -name '.env.example' -delete 2>/dev/null || true
+    -@docker compose down -v --remove-orphans --rmi local
 
 clean:
     -@rm -rf .pytest_cache .ruff_cache .mypy_cache dist build
