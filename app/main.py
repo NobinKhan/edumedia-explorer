@@ -6,8 +6,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.api.v1 import api_router
-from app.db import engine
-from app.models import Base
+from app.bootstrap import init_schema_and_seed
 from app.services.media_service import _upload_root
 from app.sqlite_maintenance import cancel_task, start_sqlite_auto_reset_task
 from app.web import editor as editor_web
@@ -17,7 +16,7 @@ from app.web import pages as pages_web
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    init_schema_and_seed()
     _upload_root().mkdir(parents=True, exist_ok=True)
     reset_task = start_sqlite_auto_reset_task()
     try:

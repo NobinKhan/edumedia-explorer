@@ -28,9 +28,10 @@ For local development, set `ENVIRONMENT=development` in `.env` (see [Configurati
 
 ```bash
 just install
-just seed
 just dev
 ```
+
+On startup the app ensures tables exist with SQLAlchemy `create_all` (additive only—it never drops tables) and runs the idempotent demo `seed()` once per process start. You can still run `just seed` manually if you want the same bootstrap without restarting the server.
 
 Open the URL printed by the dev server. API docs: `/docs`. Landing: `/`.
 
@@ -85,6 +86,8 @@ That combination—Wolfi base, frozen uv lock, split stages, non-root user—is 
 
 See [`.env.example`](.env.example). **`ENVIRONMENT`**: omit it for production-like defaults (`production`). Set **`ENVIRONMENT=development`** in `.env` for local work (for example the landing page dev hint). Optional: `DATABASE_URL`, `MEDIA_UPLOAD_DIR`, `SQLALCHEMY_ECHO`.
 
+**Schema and demo data:** at startup the service calls `create_all` with `checkfirst=True` (creates missing tables only; no migrations and no `DROP`). It then runs the same idempotent demo seed as `just seed`. Destructive resets are limited to the optional SQLite demo interval described below.
+
 For **PostgreSQL**, set a SQLAlchemy URL with the psycopg v3 driver, for example:
 
 `postgresql+psycopg://USER:PASSWORD@HOST:5432/DBNAME`
@@ -101,7 +104,7 @@ If `SQLITE_AUTO_RESET_SECONDS` is set to a positive value **and** you use SQLite
 |---------|---------|
 | `just dev-setup` | Create `.env` from `.env.example` if missing; start Compose Postgres (`db`) |
 | `just install` | `uv sync` dependencies |
-| `just seed` | Seed sample hierarchy + one published page |
+| `just seed` | Same as startup: ensure tables + idempotent demo seed |
 | `just dev` | Dev server with reload |
 | `just run` | Production-style local server |
 | `just test` | Pytest |
