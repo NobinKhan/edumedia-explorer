@@ -22,6 +22,9 @@ run:
 test:
     -@uv run pytest
 
+seed:
+    -@uv run python -m app.seed_cli
+
 lint:
     -@uv run ruff check .
 

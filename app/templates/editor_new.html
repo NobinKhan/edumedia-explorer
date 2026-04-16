@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}New page — EduMedia Author{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <h1 class="page-title">New subject page</h1>
+    <p class="page-subtitle">Create a new draft, add content, then publish.</p>
+  </header>
+  <div class="stack">
+    <div class="toolbar">
+      <a class="btn" href="/editor">Back</a>
+      <button class="btn btn--primary" type="button" id="btn-save">Save draft</button>
+      <button class="btn" type="button" id="btn-preview" disabled>Preview</button>
+      <button class="btn" type="button" id="btn-publish" disabled>Publish</button>
+    </div>
+
+    <section class="card stack" aria-label="Page fields">
+      <div class="card__title">Details</div>
+      <div class="field">
+        <label class="label" for="category_id">Category</label>
+        <select class="select" id="category_id"></select>
+      </div>
+      <div class="field">
+        <label class="label" for="sub_category_id">Sub-category</label>
+        <select class="select" id="sub_category_id"></select>
+      </div>
+      <div class="field">
+        <label class="label" for="sub_sub_category_id">Sub-sub-category</label>
+        <select class="select" id="sub_sub_category_id"></select>
+      </div>
+      <div class="field">
+        <label class="label" for="title">Title</label>
+        <input class="input" id="title" placeholder="e.g. Photosynthesis" />
+      </div>
+      <div class="field">
+        <label class="label" for="slug">Slug</label>
+        <input class="input" id="slug" placeholder="photosynthesis" />
+        <div class="muted">Lowercase letters/digits/hyphens only.</div>
+      </div>
+      <div class="field">
+        <label class="label" for="summary">Summary</label>
+        <textarea class="textarea" id="summary" placeholder="Short overview..."></textarea>
+      </div>
+    </section>
+
+    <section class="card stack" aria-label="Content editor">
+      <div class="card__title">Content</div>
+      <div class="toolbar" role="toolbar" aria-label="Formatting toolbar">
+        <button class="btn" type="button" data-cmd="bold"><b>B</b></button>
+        <button class="btn" type="button" data-cmd="italic"><i>I</i></button>
+        <button class="btn" type="button" data-cmd="underline"><u>U</u></button>
+        <button class="btn" type="button" data-cmd="highlight">Highlight</button>
+        <span class="muted">Select text then format.</span>
+      </div>
+      <div id="editor" class="editor" contenteditable="true" spellcheck="true">
+        <p>Write your content here.</p>
+      </div>
+    </section>
+
+    <section class="card stack" aria-label="Annotation creation">
+      <div class="card__title">Annotation</div>
+      <p class="muted">Select text in the editor, then attach a note or media.</p>
+      <div class="toolbar">
+        <button class="btn" type="button" id="btn-capture">Use current selection</button>
+      </div>
+      <div class="field">
+        <label class="label" for="ann_trigger">Selected text</label>
+        <input class="input" id="ann_trigger" readonly />
+      </div>
+      <div class="field">
+        <label class="label" for="ann_type">Type</label>
+        <select class="select" id="ann_type">
+          <option value="text">Text</option>
+          <option value="image">Image</option>
+          <option value="audio">Audio</option>
+          <option value="video">Video</option>
+          <option value="youtube">YouTube</option>
+          <option value="link_note">Link note</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label" for="ann_title">Title</label>
+        <input class="input" id="ann_title" placeholder="Optional title" />
+      </div>
+      <div class="field" id="ann_body_wrap">
+        <label class="label" for="ann_body">Body</label>
+        <textarea class="textarea" id="ann_body" placeholder="Text note or link URL..."></textarea>
+      </div>
+      <div class="field" id="ann_youtube_wrap" hidden>
+        <label class="label" for="ann_youtube">YouTube URL</label>
+        <input class="input" id="ann_youtube" placeholder="https://www.youtube.com/watch?v=..." />
+      </div>
+      <div class="field" id="ann_link_label_wrap" hidden>
+        <label class="label" for="ann_link_label">Link label</label>
+        <input class="input" id="ann_link_label" placeholder="Open link" />
+      </div>
+      <div class="field" id="ann_media_wrap" hidden>
+        <label class="label" for="ann_media">Media asset id</label>
+        <input class="input" id="ann_media" inputmode="numeric" placeholder="Create via /api/v1/media-assets first" />
+      </div>
+      <div class="toolbar">
+        <button class="btn btn--primary" type="button" id="btn-create-annotation" disabled>Create annotation</button>
+      </div>
+      <div id="ann_error" class="muted" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="card stack" aria-label="Preview">
+      <div class="card__title">Preview</div>
+      <div id="preview" class="card" style="box-shadow:none; background: rgba(255,255,255,0.01);"></div>
+    </section>
+  </div>
+
+  <script src="/static/js/editor_page.js"></script>
+{% endblock %}

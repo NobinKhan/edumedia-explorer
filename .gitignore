@@ -20,4 +20,7 @@ wheels/
 
 # Virtual environments
 .venv
-tracker
+
+# Local SQLite and uploads (see app/config.py)
+data/
+*.db

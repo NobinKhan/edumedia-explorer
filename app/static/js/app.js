@@ -113,6 +113,22 @@ function initModal() {
       return;
     }
 
+    if (item.type === "link_note") {
+      bodyEl.appendChild(createEl("p", { text: item.body_text || "" }));
+      if (item.asset_url) {
+        footerEl.hidden = false;
+        const link = createEl("a", {
+          href: item.asset_url,
+          target: "_blank",
+          rel: "noreferrer",
+          class: "term term--inline",
+        });
+        link.textContent = item.link_label || "Open link";
+        footerEl.appendChild(link);
+      }
+      return;
+    }
+
     if (item.type === "image") {
       const img = createEl("img", {
         src: item.asset_url || "",
@@ -158,6 +174,23 @@ function initModal() {
       return;
     }
 
+    if (item.type === "link_note") {
+      bodyEl.appendChild(createEl("p", { text: item.body_text || "" }));
+      const linkUrl = item.asset_url || "";
+      if (linkUrl) {
+        footerEl.hidden = false;
+        const link = createEl("a", {
+          href: linkUrl,
+          target: "_blank",
+          rel: "noreferrer",
+          class: "term term--inline",
+        });
+        link.textContent = item.link_label || "Open link";
+        footerEl.appendChild(link);
+      }
+      return;
+    }
+
     bodyEl.appendChild(createEl("p", { text: "Unsupported content type." }));
   }
 
@@ -175,12 +208,59 @@ function initModal() {
     }
   }
 
+  function loadEmbeddedAnnotations() {
+    const el = document.getElementById("edumedia-annotations");
+    if (!el) return null;
+    try {
+      return JSON.parse(el.textContent || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  const embeddedAnnotations = loadEmbeddedAnnotations();
+  if (embeddedAnnotations) {
+    window.__EDUMEDIA_ANNOTATIONS__ = embeddedAnnotations;
+  }
+
+  function findAnnotationItem(id) {
+    const items = window.__EDUMEDIA_ANNOTATIONS__ || [];
+    return items.find((x) => String(x.id) === String(id));
+  }
+
   document.addEventListener("click", (e) => {
+    const annoTrigger = e.target.closest("[data-annotation-id]");
+    if (annoTrigger) {
+      e.preventDefault();
+      const id = annoTrigger.getAttribute("data-annotation-id");
+      const item = id ? findAnnotationItem(id) : null;
+      if (item) {
+        renderContent(item);
+        open();
+      }
+      return;
+    }
+
     const trigger = e.target.closest('[data-action="open-content"][data-content-id]');
     if (trigger) {
       e.preventDefault();
       openForContentId(trigger.getAttribute("data-content-id"));
       return;
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const active = document.activeElement;
+    if (!active) return;
+    const anno = active.closest && active.closest("[data-annotation-id]");
+    if (!anno) return;
+    e.preventDefault();
+    const id = anno.getAttribute("data-annotation-id");
+    const item = id ? findAnnotationItem(id) : null;
+    if (item) {
+      renderContent(item);
+      open();
     }
   });
 

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Editor — EduMedia Author{% endblock %}
+
+{% block content %}
+  <header class="page-header">
+    <h1 class="page-title">Editor</h1>
+    <p class="page-subtitle">Create and manage subject pages.</p>
+  </header>
+
+  <div class="split">
+    <section class="card stack" aria-label="Pages">
+      <div class="card__title">Subject pages</div>
+      <div class="toolbar">
+        <a class="btn btn--primary" href="/editor/pages/new">New page</a>
+        <a class="btn" href="/docs">API docs</a>
+        <a class="btn" href="/">Home</a>
+      </div>
+
+      <div class="field">
+        <label class="label" for="page-filter-status">Filter by status</label>
+        <select id="page-filter-status" class="select">
+          <option value="">All</option>
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+        </select>
+      </div>
+
+      <div id="pages-empty" class="muted" hidden>No pages yet.</div>
+      <div class="table-wrap">
+        <table class="table" aria-label="Subject pages table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="pages-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <aside class="card stack" aria-label="Help">
+      <div class="card__title">Notes</div>
+      <p class="muted">
+        Annotations must be created from a selection that stays inside a single text node (cannot
+        cross element boundaries).
+      </p>
+      <p class="muted">Use <code>/api/v1</code> endpoints directly if needed.</p>
+    </aside>
+  </div>
+
+  <script src="/static/js/editor.js"></script>
+{% endblock %}

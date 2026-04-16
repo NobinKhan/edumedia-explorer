@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}Interactive Teaching Platform{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}" />
+    <title>{% block title %}EduMedia Author{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
   </head>
-  <body>
-    <main class="container">
+  <body{% block body_extra %}{% endblock %}>
+    <main class="container{% block container_class %}{% endblock %}">
       {% block content %}{% endblock %}
     </main>
-    <script src="{{ url_for('static', path='/js/app.js') }}"></script>
+    <script src="/static/js/app.js"></script>
   </body>
 </html>

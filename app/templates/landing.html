@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}EduMedia Author{% endblock %}
+{% block body_extra %} class="page--landing"{% endblock %}
+{% block container_class %} container--wide{% endblock %}
+
+{% block content %}
+  <div class="landing">
+    <header class="landing__top" aria-label="Site">
+      <span class="landing__brand">EduMedia Author</span>
+      <nav class="landing__nav" aria-label="Quick links">
+        <a class="landing__nav-link" href="/docs">API docs</a>
+        <a class="landing__nav-link" href="/healthz">Health</a>
+      </nav>
+    </header>
+
+    <section class="landing__hero" aria-labelledby="landing-title">
+      <p class="landing__eyebrow">Subject pages · hierarchy · rich text · annotations</p>
+      <h1 class="landing__title" id="landing-title">Author pages people can explore</h1>
+      <p class="landing__lead">
+        Build category trees, write with familiar formatting, anchor notes and media to selected
+        text, then publish an interactive page your readers open in the browser.
+      </p>
+      <div class="landing__actions">
+        <a class="landing__btn landing__btn--primary" href="/editor">Open editor</a>
+        <a class="landing__btn landing__btn--ghost" href="/pages/photosynthesis">View demo page</a>
+      </div>
+      <p class="landing__hint">
+        First time here? Run <kbd class="landing__kbd">just seed</kbd> locally, then open the demo link.
+      </p>
+    </section>
+
+    <section class="landing__features" aria-labelledby="features-heading">
+      <h2 class="landing__section-title" id="features-heading">What you get</h2>
+      <ul class="landing__grid">
+        <li class="landing__card">
+          <span class="landing__card-icon" aria-hidden="true">◇</span>
+          <h3 class="landing__card-title">Structured content</h3>
+          <p class="landing__card-text">
+            Categories, sub-categories, and sub-sub-categories keep long curricula organized before
+            you attach a subject page.
+          </p>
+        </li>
+        <li class="landing__card">
+          <span class="landing__card-icon landing__card-icon--mint" aria-hidden="true">◇</span>
+          <h3 class="landing__card-title">Word-like editing</h3>
+          <p class="landing__card-text">
+            Bold, italic, underline, and highlight in the editor—then preview the server-rendered
+            HTML before you publish.
+          </p>
+        </li>
+        <li class="landing__card">
+          <span class="landing__card-icon landing__card-icon--sky" aria-hidden="true">◇</span>
+          <h3 class="landing__card-title">Interactive explanations</h3>
+          <p class="landing__card-text">
+            Text, images, audio, video, YouTube, and link-style notes open in an accessible modal on
+            the public page.
+          </p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="landing__panel" aria-labelledby="dev-heading">
+      <h2 class="landing__section-title" id="dev-heading">For integrators</h2>
+      <p class="landing__panel-text">
+        Everything is backed by a versioned REST API under
+        <code class="landing__code">/api/v1</code>. Open the interactive schema when you need request
+        bodies or filters.
+      </p>
+      <a class="landing__btn landing__btn--secondary" href="/docs">Browse OpenAPI</a>
+    </section>
+  </div>
+{% endblock %}
