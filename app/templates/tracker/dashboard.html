@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body_extra %} class="page--tracker"{% endblock %}
+{% block container_class %}{% endblock %}
+
+{% block content %}
+  <link rel="stylesheet" href="/static/css/tracker.css" />
+  <div class="tracker-page">
+    <header class="tracker-top">
+      <div class="tracker-brand">Request analytics</div>
+      <div class="tracker-actions">
+        <span class="tracker-pill">Internal</span>
+        <form method="post" action="/tracker/logout" style="margin:0">
+          <button type="submit" class="tracker-btn tracker-btn--ghost">Sign out</button>
+        </form>
+      </div>
+    </header>
+
+    <section class="tracker-grid" aria-label="Summary">
+      <div class="tracker-stat">
+        <div class="tracker-stat__label">Total requests logged</div>
+        <div class="tracker-stat__value">{{ "{:,}".format(total_requests) }}</div>
+      </div>
+      <div class="tracker-stat">
+        <div class="tracker-stat__label">Distinct client IPs</div>
+        <div class="tracker-stat__value">{{ "{:,}".format(unique_ips) }}</div>
+      </div>
+      <div class="tracker-stat">
+        <div class="tracker-stat__label">Page size</div>
+        <div class="tracker-stat__value">{{ page_size }}</div>
+      </div>
+    </section>
+
+    <div class="tracker-panels">
+      <section class="tracker-panel" aria-labelledby="paths-heading">
+        <h2 class="tracker-panel__title" id="paths-heading">Top routes</h2>
+        {% set max_cnt = path_stats[0][1] if path_stats else 1 %}
+        {% for path, cnt in path_stats %}
+          <div class="tracker-bar">
+            <span class="tracker-bar__label" title="{{ path }}">{{ path }}</span>
+            <div class="tracker-bar__track" aria-hidden="true">
+              <div class="tracker-bar__fill" style="width: {{ (100 * cnt / max_cnt)|round(1) }}%"></div>
+            </div>
+            <span class="tracker-bar__count">{{ cnt }}</span>
+          </div>
+        {% else %}
+          <p class="tracker-login__lead">No data yet. Traffic will appear here after requests are logged.</p>
+        {% endfor %}
+      </section>
+
+      <section class="tracker-panel" aria-labelledby="device-heading">
+        <h2 class="tracker-panel__title" id="device-heading">Device mix</h2>
+        {% set max_d = device_stats[0][1] if device_stats else 1 %}
+        {% for kind, cnt in device_stats %}
+          <div class="tracker-bar">
+            <span class="tracker-bar__label">{{ kind }}</span>
+            <div class="tracker-bar__track" aria-hidden="true">
+              <div class="tracker-bar__fill" style="width: {{ (100 * cnt / max_d)|round(1) }}%"></div>
+            </div>
+            <span class="tracker-bar__count">{{ cnt }}</span>
+          </div>
+        {% else %}
+          <p class="tracker-login__lead">No device breakdown yet.</p>
+        {% endfor %}
+      </section>
+    </div>
+
+    <section aria-labelledby="recent-heading">
+      <h2 class="tracker-panel__title" id="recent-heading" style="margin-bottom:12px">Recent requests</h2>
+      <div class="tracker-table-wrap">
+        <table class="tracker-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Method</th>
+              <th>Route</th>
+              <th>Status</th>
+              <th>IP</th>
+              <th>Device</th>
+              <th>OS</th>
+              <th>Browser</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in recent %}
+              <tr>
+                <td>{{ row.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                <td><code>{{ row.method }}</code></td>
+                <td><code title="{{ row.path }}">{{ row.path[:56] }}{% if row.path|length > 56 %}…{% endif %}</code></td>
+                <td>{{ row.status_code }}</td>
+                <td>{{ row.client_ip }}</td>
+                <td>
+                  <span class="tracker-pill {% if row.device_kind == 'mobile' %}tracker-pill--mobile{% elif row.device_kind == 'desktop' %}tracker-pill--desktop{% endif %}">{{ row.device_kind }}</span>
+                </td>
+                <td>{{ row.os_family }}</td>
+                <td>{{ row.browser_family }}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="8">No rows yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <nav class="tracker-pager" aria-label="Pagination">
+        {% if page > 1 %}
+          <a href="/tracker/dashboard?page={{ page - 1 }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page }} / {{ total_pages }}</span>
+        {% if page < total_pages %}
+          <a href="/tracker/dashboard?page={{ page + 1 }}">Next</a>
+        {% endif %}
+      </nav>
+    </section>
+  </div>
+{% endblock %}

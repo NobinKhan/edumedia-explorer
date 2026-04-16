@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     sqlite_auto_reset_seconds: int = Field(default=0, ge=0)
     #: After an auto-reset, run `seed()` (SQLite + interval only). Default on for demos.
     sqlite_auto_reset_seed: bool = True
+    #: Shared secret for internal usage tracker (`/tracker`). If unset, tracker is disabled.
+    tracker_secret: str | None = None
+    #: Max rows in `request_logs` before oldest rows are deleted.
+    tracker_max_rows: int = Field(default=50_000, ge=1000)
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

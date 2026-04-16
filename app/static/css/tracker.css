@@ -1,0 +1,304 @@
+/* Internal usage tracker dashboard — matches app dark theme */
+.tracker-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 16px 48px;
+}
+
+.tracker-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.tracker-brand {
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.tracker-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.tracker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .tracker-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tracker-stat {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+}
+
+.tracker-stat__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.tracker-stat__value {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--accent-2);
+}
+
+.tracker-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .tracker-panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tracker-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.tracker-panel__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(233, 238, 252, 0.88);
+  margin: 0 0 14px;
+}
+
+.tracker-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+}
+
+.tracker-bar__label {
+  flex: 0 0 38%;
+  min-width: 0;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tracker-bar__track {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.tracker-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+.tracker-bar__count {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tracker-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.tracker-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.tracker-table th,
+.tracker-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.tracker-table th {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(233, 238, 252, 0.9);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+}
+
+.tracker-table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tracker-table tr:hover td {
+  background: rgba(121, 167, 255, 0.08);
+}
+
+.tracker-table code {
+  font-size: 0.78em;
+  color: var(--accent);
+}
+
+.tracker-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(121, 167, 255, 0.15);
+  color: var(--accent);
+}
+
+.tracker-pill--mobile {
+  background: rgba(96, 214, 181, 0.18);
+  color: var(--accent-2);
+}
+
+.tracker-pill--desktop {
+  background: rgba(121, 167, 255, 0.2);
+  color: #b8d4ff;
+}
+
+.tracker-pager {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.tracker-pager a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.tracker-pager a:hover {
+  text-decoration: underline;
+}
+
+/* Login */
+.tracker-login {
+  max-width: 420px;
+  margin: 80px auto;
+  padding: 0 16px;
+}
+
+.tracker-login__card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 26px 26px;
+  box-shadow: var(--shadow);
+}
+
+.tracker-login__title {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.tracker-login__lead {
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.tracker-field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.tracker-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(233, 238, 252, 0.9);
+}
+
+.tracker-field input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.tracker-field input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.tracker-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 18px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), #4d7ae8);
+  color: #0b1220;
+}
+
+.tracker-btn:hover {
+  filter: brightness(1.06);
+}
+
+.tracker-btn--ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.tracker-alert {
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  background: rgba(255, 107, 107, 0.12);
+  border: 1px solid rgba(255, 107, 107, 0.35);
+  color: #ffb4b4;
+}

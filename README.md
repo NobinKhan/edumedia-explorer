@@ -76,6 +76,7 @@ Stop and remove containers: `docker compose down`. To wipe the Postgres volume a
 | `GET /docs` | OpenAPI UI |
 | `GET /editor` | Editor dashboard |
 | `GET /pages/{slug}` | Published subject page (404 if not `published`) |
+| `GET /tracker` | Internal usage dashboard (only if `TRACKER_SECRET` is set; excluded from OpenAPI) |
 
 ## Dockerfile and container layout
 
@@ -107,6 +108,12 @@ The bundled [`docker-compose.yml`](docker-compose.yml) wires this for the `web` 
 ### SQLite auto-reset (demos only)
 
 If `SQLITE_AUTO_RESET_SECONDS` is set to a positive value **and** you use SQLite, the app will **drop and recreate all tables** on that interval (e.g. `3600` for hourly). This prevents unbounded growth in throwaway environments. It is **destructive**—leave unset (`0`, the default) for normal use. After each reset, **`seed()` runs by default** (same as `just seed`); set `SQLITE_AUTO_RESET_SEED=false` to leave the database empty instead.
+
+### Internal usage tracker
+
+When **`TRACKER_SECRET`** is set in the environment, the app enables an internal dashboard at **`/tracker`** (not listed in OpenAPI `/docs`). Sign in with the shared secret (or send header **`X-Tracker-Secret`** with the same value). The UI shows recent HTTP requests (method, matched route template, status, client IP, device class, OS, browser from `User-Agent`), plus aggregate counts by path and device. Rows are stored in the `request_logs` table; growth is capped by **`TRACKER_MAX_ROWS`** (default **50_000**), dropping oldest rows first.
+
+**Security:** anyone with the secret can see client IPs and URLs—use HTTPS in production, rotate the secret, and leave **`TRACKER_SECRET` unset** to disable the feature entirely.
 
 ## Commands
 

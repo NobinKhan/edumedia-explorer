@@ -9,6 +9,8 @@ from app.api.v1 import api_router
 from app.bootstrap import init_schema_and_seed
 from app.services.media_service import _upload_root
 from app.sqlite_maintenance import cancel_task, start_sqlite_auto_reset_task
+from app.tracker import tracker_router
+from app.tracker.middleware import RequestLogMiddleware
 from app.web import editor as editor_web
 from app.web import home as home_web
 from app.web import pages as pages_web
@@ -35,3 +37,5 @@ app.include_router(api_router, prefix="/api/v1")
 app.include_router(home_web.router)
 app.include_router(editor_web.router)
 app.include_router(pages_web.router)
+app.include_router(tracker_router)
+app.add_middleware(RequestLogMiddleware)

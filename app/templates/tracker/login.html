@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block body_extra %} class="page--tracker"{% endblock %}
+{% block container_class %}{% endblock %}
+
+{% block content %}
+  <link rel="stylesheet" href="/static/css/tracker.css" />
+  <div class="tracker-login">
+    <div class="tracker-login__card">
+      <h1 class="tracker-login__title">Usage tracker</h1>
+      <p class="tracker-login__lead">Enter the shared secret to view request analytics. Not shown in API docs.</p>
+      {% if error %}
+        <div class="tracker-alert" role="alert">{{ error }}</div>
+      {% endif %}
+      <form method="post" action="/tracker/login" autocomplete="off">
+        <div class="tracker-field">
+          <label for="tracker-secret">Secret</label>
+          <input id="tracker-secret" name="secret" type="password" required placeholder="TRACKER_SECRET" />
+        </div>
+        <button type="submit" class="tracker-btn">Sign in</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
