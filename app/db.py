@@ -17,7 +17,19 @@ def _default_sqlite_url() -> str:
     return f"sqlite:///{data_dir / 'edumedia.db'}"
 
 
-DATABASE_URL = settings.database_url or _default_sqlite_url()
+def _normalize_database_url(url: str) -> str:
+    """Use psycopg v3 for bare postgresql:// URLs (e.g. Fly) without changing explicit drivers."""
+    lower = url.lower()
+    if lower.startswith("postgres://"):
+        sep = url.find("://")
+        return "postgresql+psycopg://" + url[sep + 3 :]
+    if lower.startswith("postgresql://") and not lower.startswith("postgresql+"):
+        sep = url.find("://")
+        return "postgresql+psycopg://" + url[sep + 3 :]
+    return url
+
+
+DATABASE_URL = _normalize_database_url(settings.database_url or _default_sqlite_url())
 
 
 def database_backend() -> str:

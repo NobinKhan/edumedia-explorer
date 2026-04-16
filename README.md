@@ -88,9 +88,11 @@ See [`.env.example`](.env.example). **`ENVIRONMENT`**: omit it for production-li
 
 **Schema and demo data:** at startup the service calls `create_all` with `checkfirst=True` (creates missing tables only; no migrations and no `DROP`). It then runs the same idempotent demo seed as `just seed`. Destructive resets are limited to the optional SQLite demo interval described below.
 
-For **PostgreSQL**, set a SQLAlchemy URL with the psycopg v3 driver, for example:
+For **PostgreSQL**, set `DATABASE_URL` to a SQLAlchemy URL using **psycopg v3**, for example:
 
 `postgresql+psycopg://USER:PASSWORD@HOST:5432/DBNAME`
+
+Managed hosts (Fly Postgres, Lympg, and similar) often supply a bare `postgresql://` or legacy `postgres://` string without a `+driver` suffix. That form is accepted here and rewritten to **`postgresql+psycopg://`** automatically so SQLAlchemy uses the installed psycopg v3 driver instead of the default psycopg2 dialect.
 
 The bundled [`docker-compose.yml`](docker-compose.yml) wires this for the `web` service against the `db` service hostname.
 
